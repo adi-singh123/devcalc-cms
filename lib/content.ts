@@ -59,7 +59,7 @@ function blogSections(value: unknown) {
     const bodyHtml = item?.bodyHtml ? cleanRichHtml(item.bodyHtml, "Article body", 200000) : "";
     return {
       heading: text(item?.heading, "Section heading", 200, !bodyHtml),
-      paragraphs: strings(bodyHtml ? plainParagraphs(bodyHtml) : item?.paragraphs, "Paragraphs", bodyHtml ? 200 : 30, 5000),
+      paragraphs: bodyHtml ? plainParagraphs(bodyHtml) : strings(item?.paragraphs, "Paragraphs", 30, 5000),
       ...(bodyHtml ? { bodyHtml } : {}),
       ...(item?.points?.length ? { points: strings(item.points, "List items", 30) } : {}),
       ...(item?.image?.src ? { image: { src: url(item.image.src, "Image URL"), alt: text(item.image.alt, "Image alt text", 250), caption: text(item.image.caption ?? "", "Image caption", 500, false) } } : {}),

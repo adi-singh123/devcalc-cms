@@ -71,7 +71,7 @@ export default function BlogEditor({ value, busy, onSave, onDirty }: { value: Re
           <label>Upload image (JPEG, PNG, WebP, AVIF; up to 2 MB)<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploading} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadFeatured(file); }} /></label>
           <Field label="Image alt text" value={draft.image_alt} onChange={(next) => set("image_alt", next)} />{uploadError && <p className="error" role="alert">{uploadError}</p>}
         </div>
-        <RichTextEditor label="Article body" value={articleHtml} onChange={(bodyHtml) => set("content", [{ heading: "", paragraphs: [], bodyHtml }])} hint="Write the article here in its published order. Use H2 or H3 for headings, and insert images at the cursor. Existing article sections are combined here when you edit them." />
+        <RichTextEditor label="Article body" value={articleHtml} onChange={(bodyHtml) => set("content", [{ heading: "", paragraphs: [], bodyHtml }])} hint="Write the article here in its published order. Every H2 becomes a Table of Contents link on the blog page; use H3 for headings within those sections. Insert images at the cursor. Existing article sections are combined here when you edit them." />
       </>}
     </div>}
 
