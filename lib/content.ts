@@ -55,15 +55,18 @@ function codeBlock(value: unknown) {
 }
 function blogSections(value: unknown) {
   if (!Array.isArray(value) || value.length > 50) throw new Error("Article needs up to 50 sections");
-  return value.map((item) => ({
-    heading: text(item?.heading, "Section heading", 200),
-    paragraphs: strings(item?.bodyHtml ? plainParagraphs(cleanRichHtml(item.bodyHtml, "Article section", 50000)) : item?.paragraphs, "Paragraphs", 30, 5000),
-    ...(item?.bodyHtml ? { bodyHtml: cleanRichHtml(item.bodyHtml, "Article section", 50000) } : {}),
-    ...(item?.points?.length ? { points: strings(item.points, "List items", 30) } : {}),
-    ...(item?.image?.src ? { image: { src: url(item.image.src, "Image URL"), alt: text(item.image.alt, "Image alt text", 250), caption: text(item.image.caption ?? "", "Image caption", 500, false) } } : {}),
-    ...(table(item?.table) ? { table: table(item.table) } : {}),
-    ...(codeBlock(item?.code) ? { code: codeBlock(item.code) } : {}),
-  }));
+  return value.map((item) => {
+    const bodyHtml = item?.bodyHtml ? cleanRichHtml(item.bodyHtml, "Article body", 200000) : "";
+    return {
+      heading: text(item?.heading, "Section heading", 200, !bodyHtml),
+      paragraphs: strings(bodyHtml ? plainParagraphs(bodyHtml) : item?.paragraphs, "Paragraphs", bodyHtml ? 200 : 30, 5000),
+      ...(bodyHtml ? { bodyHtml } : {}),
+      ...(item?.points?.length ? { points: strings(item.points, "List items", 30) } : {}),
+      ...(item?.image?.src ? { image: { src: url(item.image.src, "Image URL"), alt: text(item.image.alt, "Image alt text", 250), caption: text(item.image.caption ?? "", "Image caption", 500, false) } } : {}),
+      ...(table(item?.table) ? { table: table(item.table) } : {}),
+      ...(codeBlock(item?.code) ? { code: codeBlock(item.code) } : {}),
+    };
+  });
 }
 function sources(value: unknown) {
   if (!Array.isArray(value) || value.length > 25) throw new Error("Sources must be a list of 25 or fewer items");
