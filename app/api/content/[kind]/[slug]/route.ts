@@ -27,7 +27,7 @@ export async function PUT(request: Request, context: Context) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return Response.json({ error: "Invalid content" }, { status: 400 });
   try {
     if (item.kind === "blogs") await writeBlog(validateBlog(input), item.slug);
-    else if (item.kind === "calculators") await writeCalculator(validateCalculator(input), item.slug);
+    else if (item.kind === "calculators") await writeCalculator(validateCalculator(input), item.slug, typeof input.updated_at === "string" ? input.updated_at : "");
     else await writePage(validatePage(input), item.slug);
     const warning = await notifySite(item.kind, item.slug);
     return Response.json({ ok: true, warning });

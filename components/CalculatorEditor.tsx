@@ -34,7 +34,7 @@ export default function CalculatorEditor({ value, busy, onSave, onDirty }: { val
       <Field label="Short description" value={draft.description} onChange={(next) => set("description", next)} multiline required />
       <Field label="Category" value={draft.category} onChange={(next) => set("category", next)} required />
       <Field label="Editorial introduction" value={draft.editorial_intro} onChange={(next) => set("editorial_intro", next)} multiline />
-      <RichTextEditor label="Main explanatory content" value={String(draft.seo_content ?? "")} onChange={(next) => set("seo_content", next)} hint="Write and format the content shown below the calculator. It is rendered in the public page's HTML source." />
+      <RichTextEditor label="Main explanatory content" value={String(draft.seo_content ?? "")} onChange={(next) => set("seo_content", next)} hint="Images appear at the cursor position inside this editor. Save the calculator to publish your changes. This section appears below the calculator steps, formula and FAQs on the website." />
     </div>}
 
     {panel === "seo" && <div className="stack" role="tabpanel">

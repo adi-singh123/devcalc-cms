@@ -166,10 +166,11 @@ export async function writeBlog(record: ReturnType<typeof validateBlog>, origina
   }
 }
 
-export async function writeCalculator(record: ReturnType<typeof validateCalculator>, entrySlug: string) {
+export async function writeCalculator(record: ReturnType<typeof validateCalculator>, entrySlug: string, expectedUpdatedAt: string) {
+  if (!expectedUpdatedAt) throw new Error("Reload this calculator before saving.");
   const keys = Object.keys(record);
-  const result = await db().execute({ sql: `UPDATE calculators SET ${keys.map((key) => `${key} = ?`).join(", ")} WHERE slug = ?`, args: [...Object.values(record), entrySlug] });
-  if (!result.rowsAffected) throw new Error("Calculator not found. New calculator logic must be added in DevCalc code first.");
+  const result = await db().execute({ sql: `UPDATE calculators SET ${keys.map((key) => `${key} = ?`).join(", ")} WHERE slug = ? AND updated_at = ?`, args: [...Object.values(record), entrySlug, expectedUpdatedAt] });
+  if (!result.rowsAffected) throw new Error("This calculator changed after you opened it. Reload the CMS page before saving, so newer text and images are not overwritten.");
 }
 
 export async function writePage(record: ReturnType<typeof validatePage>, entrySlug: string) {
