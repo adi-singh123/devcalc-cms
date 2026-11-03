@@ -56,11 +56,12 @@ function codeBlock(value: unknown) {
 function blogSections(value: unknown) {
   if (!Array.isArray(value) || value.length > 50) throw new Error("Article needs up to 50 sections");
   return value.map((item) => {
-    const bodyHtml = item?.bodyHtml ? cleanRichHtml(item.bodyHtml, "Article body", 200000) : "";
+    const hasRichBody = typeof item?.bodyHtml === "string";
+    const bodyHtml = hasRichBody ? cleanRichHtml(item.bodyHtml, "Article body", 200000) : "";
     return {
-      heading: text(item?.heading, "Section heading", 200, !bodyHtml),
-      paragraphs: bodyHtml ? plainParagraphs(bodyHtml) : strings(item?.paragraphs, "Paragraphs", 30, 5000),
-      ...(bodyHtml ? { bodyHtml } : {}),
+      heading: text(item?.heading ?? "", "Section heading", 200, !hasRichBody),
+      paragraphs: hasRichBody ? plainParagraphs(bodyHtml) : strings(item?.paragraphs, "Paragraphs", 30, 5000),
+      ...(hasRichBody ? { bodyHtml } : {}),
       ...(item?.points?.length ? { points: strings(item.points, "List items", 30) } : {}),
       ...(item?.image?.src ? { image: { src: url(item.image.src, "Image URL"), alt: text(item.image.alt, "Image alt text", 250), caption: text(item.image.caption ?? "", "Image caption", 500, false) } } : {}),
       ...(table(item?.table) ? { table: table(item.table) } : {}),
@@ -167,6 +168,11 @@ export async function writeBlog(record: ReturnType<typeof validateBlog>, origina
     const keys = Object.keys(record);
     await db().execute({ sql: `INSERT INTO blog_posts (${keys.join(", ")}) VALUES (${keys.map(() => "?").join(", ")})`, args: Object.values(record) });
   }
+}
+
+export async function deleteBlog(entrySlug: string) {
+  const result = await db().execute({ sql: "DELETE FROM blog_posts WHERE slug = ?", args: [entrySlug] });
+  return result.rowsAffected > 0;
 }
 
 export async function writeCalculator(record: ReturnType<typeof validateCalculator>, entrySlug: string, expectedUpdatedAt: string) {

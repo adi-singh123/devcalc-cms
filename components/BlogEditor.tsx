@@ -55,7 +55,10 @@ export default function BlogEditor({ value, busy, onSave, onDirty }: { value: Re
     finally { setUploading(false); }
   }
 
-  return <form className="stack" onSubmit={(event) => { event.preventDefault(); void onSave(draft); }}>
+  return <form className="stack" onSubmit={(event) => {
+    event.preventDefault();
+    void onSave({ ...draft, content: [{ heading: "", paragraphs: [], bodyHtml: articleHtml }] });
+  }}>
     <div className="editor-tabs" role="tablist" aria-label="Article editing sections">
       {(["content", "seo", "details"] as const).map((item) => <button key={item} type="button" role="tab" aria-selected={panel === item} className={panel === item ? "active" : ""} onClick={() => setPanel(item)}>{item === "seo" ? "SEO" : item === "content" ? "Content" : "Details & FAQ"}</button>)}
     </div>

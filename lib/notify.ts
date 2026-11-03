@@ -1,9 +1,10 @@
 import "server-only";
 
-export async function notifySite(kind: "blogs" | "calculators" | "pages", slug: string): Promise<string | null> {
+export async function notifySite(kind: "blogs" | "calculators" | "pages", slug: string, action: "saved" | "deleted" = "saved"): Promise<string | null> {
+  const completed = action === "deleted" ? "Deleted" : "Saved";
   const secret = process.env.CMS_REVALIDATE_SECRET;
   const base = process.env.CMS_SITE_URL;
-  if (!secret || !base) return "Saved. Configure CMS_SITE_URL and CMS_REVALIDATE_SECRET for immediate site refresh; existing ISR still updates automatically.";
+  if (!secret || !base) return `${completed}. Configure CMS_SITE_URL and CMS_REVALIDATE_SECRET for immediate site refresh; existing ISR still updates automatically.`;
   try {
     const target = new URL("/api/cms-revalidate", base);
     if (target.protocol !== "https:" && target.hostname !== "localhost") throw new Error("CMS_SITE_URL must use HTTPS");
@@ -12,6 +13,6 @@ export async function notifySite(kind: "blogs" | "calculators" | "pages", slug: 
     return null;
   } catch (error) {
     console.error("DevCalc cache refresh failed", error);
-    return "Saved in Turso. Site refresh was unavailable; published pages and sitemap will update through their normal cache window.";
+    return `${completed} in Turso. Site refresh was unavailable; published pages and sitemap will update through their normal cache window.`;
   }
 }

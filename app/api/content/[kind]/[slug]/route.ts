@@ -1,5 +1,5 @@
 import { authenticated, sameOrigin } from "@/lib/auth";
-import { read, slugPattern, validateBlog, validateCalculator, validatePage, writeBlog, writeCalculator, writePage, type Kind } from "@/lib/content";
+import { deleteBlog, read, slugPattern, validateBlog, validateCalculator, validatePage, writeBlog, writeCalculator, writePage, type Kind } from "@/lib/content";
 import { notifySite } from "@/lib/notify";
 
 type Context = { params: Promise<{ kind: string; slug: string }> };
@@ -33,5 +33,20 @@ export async function PUT(request: Request, context: Context) {
     return Response.json({ ok: true, warning });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Could not save content" }, { status: 400 });
+  }
+}
+
+export async function DELETE(request: Request, context: Context) {
+  if (!(await authenticated())) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await sameOrigin(request))) return Response.json({ error: "Invalid origin" }, { status: 403 });
+  const item = await target(context);
+  if (!item || item.kind !== "blogs") return Response.json({ error: "Not found" }, { status: 404 });
+  try {
+    if (!(await deleteBlog(item.slug))) return Response.json({ error: "Blog not found" }, { status: 404 });
+    const warning = await notifySite("blogs", item.slug, "deleted");
+    return Response.json({ ok: true, warning });
+  } catch (error) {
+    console.error("CMS blog deletion failed", error);
+    return Response.json({ error: "Could not delete blog" }, { status: 500 });
   }
 }

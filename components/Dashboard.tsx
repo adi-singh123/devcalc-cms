@@ -105,6 +105,21 @@ export default function Dashboard() {
     await save({ ...record, status: "archived" });
   }
 
+  async function deleteBlog() {
+    if (kind !== "blogs" || !selected || !canLeave()) return;
+    if (!window.confirm(`Permanently delete /blog/${selected}? This cannot be undone. The blog will also disappear from the sitemap and RSS feed.`)) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      const response = await fetch(`/api/content/blogs/${encodeURIComponent(selected)}`, { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Could not delete blog");
+      setItems((current) => current.filter((item) => item.slug !== selected));
+      setSelected(null); setRecord(null); setDirty(false);
+      setMessage(result.warning ?? "Blog deleted. Its page, sitemap entry, and RSS entry are refreshing.");
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not delete blog"); }
+    finally { setBusy(false); }
+  }
+
   async function signOut() {
     if (!canLeave()) return;
     await fetch("/api/session", { method: "DELETE" });
@@ -119,7 +134,7 @@ export default function Dashboard() {
       {error && <p className="error" role="alert">{error}</p>}{message && <p className="success" role="status">{message}</p>}
       <div className="grid">
         <aside className="card"><div className="row between"><h2>{kind === "blogs" ? "Articles" : kind === "calculators" ? "Calculators" : "Site pages"} ({items.length})</h2>{kind === "blogs" && <button className="primary" onClick={() => { if (!canLeave()) return; setSelected(null); setRecord(structuredClone(newBlog)); setRevision((current) => current + 1); setDirty(false); setMessage(""); setError(""); }}>New</button>}</div><input aria-label="Search content" placeholder="Search title or slug" value={query} onChange={(event) => setQuery(event.target.value)} /><div className="list">{items.filter((item) => `${item.title} ${item.slug}`.toLowerCase().includes(query.toLowerCase())).map((item) => <button key={item.slug} className={selected === item.slug ? "active" : ""} onClick={() => open(item.slug)}><strong>{item.title}</strong><br /><span className="muted">{item.slug}</span> <span className="pill">{item.status}</span></button>)}{!items.some((item) => `${item.title} ${item.slug}`.toLowerCase().includes(query.toLowerCase())) && <p className="muted">{query ? "No matching content." : "No content in this category."}</p>}</div></aside>
-        <section className="card">{!record ? <p className="muted">Select an item{kind === "blogs" ? " or create a new article" : ""}.</p> : <><div className="row between"><div><h2>{selected ? `Edit ${kind === "blogs" ? "article" : kind === "calculators" ? "calculator" : "site page"}` : "New article"}</h2><p className="muted">{selected ? `/${kind === "blogs" ? "blog/" : ""}${selected}` : "Save as draft before publishing."}</p></div>{selected && <button className="danger" disabled={busy || record.status === "archived"} onClick={archive}>Archive</button>}</div>{kind === "blogs" ? <BlogEditor key={`blog-${selected ?? "new"}-${revision}`} value={record} busy={busy} onSave={save} onDirty={() => setDirty(true)} /> : kind === "calculators" ? <CalculatorEditor key={`calc-${selected}-${revision}`} value={record} busy={busy} onSave={save} onDirty={() => setDirty(true)} /> : <PageEditor key={`page-${selected}-${revision}`} value={record} busy={busy} onSave={save} onDirty={() => setDirty(true)} />}</>}</section>
+        <section className="card">{!record ? <p className="muted">Select an item{kind === "blogs" ? " or create a new article" : ""}.</p> : <><div className="row between"><div><h2>{selected ? `Edit ${kind === "blogs" ? "article" : kind === "calculators" ? "calculator" : "site page"}` : "New article"}</h2><p className="muted">{selected ? `/${kind === "blogs" ? "blog/" : ""}${selected}` : "Save as draft before publishing."}</p></div>{selected && <div className="row"><button className="danger" disabled={busy || record.status === "archived"} onClick={archive}>Archive</button>{kind === "blogs" && <button className="danger" disabled={busy} onClick={deleteBlog}>Delete permanently</button>}</div>}</div>{kind === "blogs" ? <BlogEditor key={`blog-${selected ?? "new"}-${revision}`} value={record} busy={busy} onSave={save} onDirty={() => setDirty(true)} /> : kind === "calculators" ? <CalculatorEditor key={`calc-${selected}-${revision}`} value={record} busy={busy} onSave={save} onDirty={() => setDirty(true)} /> : <PageEditor key={`page-${selected}-${revision}`} value={record} busy={busy} onSave={save} onDirty={() => setDirty(true)} />}</>}</section>
       </div>
     </main>
   </>;
